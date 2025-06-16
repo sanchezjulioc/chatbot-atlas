@@ -1,101 +1,65 @@
+const chatContainer = document.getElementById("chat");
+const userInput = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-const chat = document.getElementById('chat');
-const userInput = document.getElementById('userInput');
-const btnSend = document.getElementById('btnSend');
-const btnSpeak = document.getElementById('btnSpeak');
-
-let recognizing = false;
-let recognition;
-
-if ('webkitSpeechRecognition' in window) {
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = 'es-ES';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-        recognizing = true;
-        btnSpeak.textContent = '🎙️ (Escuchando...)';
-    };
-
-    recognition.onerror = (event) => {
-        console.error(event.error);
-        recognizing = false;
-        btnSpeak.textContent = '🎙️';
-    };
-
-    recognition.onend = () => {
-        recognizing = false;
-        btnSpeak.textContent = '🎙️';
-    };
-
-    recognition.onresult = (event) => {
-        let transcript = event.results[0][0].transcript;
-        userInput.value = transcript;
-        sendMessage();
-    };
-} else {
-    btnSpeak.disabled = true;
-    btnSpeak.title = "Reconocimiento de voz no soportado en este navegador.";
-}
+let conversation = [
+  { role: "system", content: "Eres un asistente amigable que enseña español a niños. Comienza saludando y preguntando el nombre del usuario." },
+  { role: "assistant", content: "¡Hola! ¿Cómo te llamas?" }
+];
 
 function appendMessage(sender, text) {
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('message', sender);
-    const textDiv = document.createElement('div');
-    textDiv.classList.add('text');
-    textDiv.textContent = text;
-    msgDiv.appendChild(textDiv);
-    chat.appendChild(msgDiv);
-    chat.scrollTop = chat.scrollHeight;
+  const message = document.createElement("div");
+  message.className = sender === "user" ? "user-message" : "bot-message";
+  message.innerText = text;
+  chatContainer.appendChild(message);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-function speakText(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'es-ES';
-        window.speechSynthesis.speak(utterance);
-    }
-}
+appendMessage("bot", "¡Hola! ¿Cómo te llamas?");
 
 async function sendMessage() {
-    const message = userInput.value.trim();
-    if (!message) return;
-    appendMessage('user', message);
-    userInput.value = '';
-    try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message})
-        });
-        const data = await res.json();
-        if (data.reply) {
-            appendMessage('bot', data.reply);
-            speakText(data.reply);
-        }
-    } catch (error) {
-        appendMessage('bot', 'Error de conexión. Intenta de nuevo.');
-        speakText('Error de conexión. Intenta de nuevo.');
+  const input = userInput.value.trim();
+  if (!input) return;
+
+  appendMessage("user", input);
+  userInput.value = "";
+
+  conversation.push({ role: "user", content: input });
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: conversation }),
+    });
+
+    if (!response.ok) throw new Error("Error al conectar con el bot");
+
+    const data = await response.json();
+    const botReply = data.reply?.trim();
+
+    if (botReply) {
+      conversation.push({ role: "assistant", content: botReply });
+      appendMessage("bot", botReply);
+      speak(botReply);
+    } else {
+      appendMessage("bot", "Lo siento, no entendí.");
     }
+  } catch (err) {
+    appendMessage("bot", "Error de conexión. Intenta de nuevo.");
+    console.error(err);
+  }
 }
 
-btnSend.addEventListener('click', sendMessage);
-userInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') sendMessage();
+sendBtn.addEventListener("click", sendMessage);
+
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
 });
 
-btnSpeak.addEventListener('click', () => {
-    if (recognizing) {
-        recognition.stop();
-        return;
-    }
-    recognition.start();
-});
-
-// Inicio con saludo del bot
-window.onload = () => {
-    const saludoInicial = "Hola, ¿cómo te llamas?";
-    appendMessage('bot', saludoInicial);
-    speakText(saludoInicial);
-};
+// Convertir texto a voz
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "es-ES";
+  speechSynthesis.speak(utterance);
+}
