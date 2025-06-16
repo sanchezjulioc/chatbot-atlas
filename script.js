@@ -33,8 +33,6 @@ async function sendMessage() {
       body: JSON.stringify({ messages: conversation }),
     });
 
-    if (!response.ok) throw new Error("Error al conectar con el bot");
-
     const data = await response.json();
     const botReply = data.reply?.trim();
 
@@ -52,12 +50,10 @@ async function sendMessage() {
 }
 
 sendBtn.addEventListener("click", sendMessage);
-
 userInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage();
 });
 
-// Convertir texto a voz
 function speak(text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "es-ES";
