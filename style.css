@@ -1,54 +1,55 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #e5ddd5;
+  font-family: sans-serif;
+  background-color: #ece5dd;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   height: 100vh;
 }
-
-.chat-window {
+#chat-container {
+  width: 100%;
+  max-width: 500px;
+  height: 90vh;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+#chat-box {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
   background-image: url('https://www.transparenttextures.com/patterns/white-wall-3.png');
 }
-
-.input-container {
+.message {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+}
+.user {
+  background-color: #dcf8c6;
+  align-self: flex-end;
+}
+.bot {
+  background-color: #f1f0f0;
+  align-self: flex-start;
+}
+#input-area {
   display: flex;
   padding: 10px;
-  background-color: #f0f0f0;
+  background-color: #ddd;
 }
-
-input {
+#user-input {
   flex: 1;
   padding: 10px;
   font-size: 16px;
 }
-
-button {
+#send-btn, #mic-btn {
   padding: 10px;
+  margin-left: 5px;
   font-size: 16px;
-  background-color: #075e54;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.user-message, .bot-message {
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 8px;
-  max-width: 70%;
-}
-
-.user-message {
-  background-color: #dcf8c6;
-  align-self: flex-end;
-  text-align: right;
-}
-
-.bot-message {
-  background-color: #ffffff;
-  align-self: flex-start;
 }
